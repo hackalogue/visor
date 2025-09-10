@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Root of the project (two levels up from this script)
+vsr_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PATH="$vsr_root/bin:$PATH"
+
+# Load all library modules (core defines helpers like log_error, die, etc.)
+for f in "$vsr_root"/lib/*.sh; do
+  source "$f"
+done
+
+# Default config location (XDG-compliant)
+xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+vsr_config="$xdg_config_home/vsr/vsr.conf"
+[[ -f "$vsr_config" ]] && source "$vsr_config"
+
+usage() {
+  cat <<EOF
+
+Usage: vsr <command>
+
+Commands:
+  start         Start/attach vsr session
+  stop          Stop vsr session
+  setup         Setup vsr
+  update        Update vsr
+  uninstall     Uninstall vsr
+
+EOF
+}
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  ""|start)        vsr_start "$@" ;;
+  stop)            vsr_stop "$@" ;;
+  setup)           vsr_setup "$@" ;;
+  help|--help|-h)  usage ;;
+  *) log_error "unknown command: $cmd"; usage; exit 1 ;;
+esac
